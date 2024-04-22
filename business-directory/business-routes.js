@@ -9,6 +9,8 @@ const {
    updateBusiness,
    deleteBusinessAndFiles,
    getFeatBusinesses,
+   getBusinessById,
+   getBusinessByOwnerId,
    getMatchingBusinesses,
    getAllBusinesses,
    getBusinessFeatImage,
@@ -30,6 +32,8 @@ router.post("/add-new-business", addNewBusiness);
 router.put("/update-business/:businessId", updateBusiness);
 router.delete("/delete-business-and-files/:businessId", deleteBusinessAndFiles);
 router.get("/get-feat-businesses", verifyAuthToken, getFeatBusinesses);
+router.get("/get-business-by-id/:businessId", verifyAuthToken, getBusinessById);
+router.get("/get-business-by-owner-id/:ownerId", verifyAuthToken, getBusinessByOwnerId);
 router.get("/get-matching-businesses", verifyAuthToken, getMatchingBusinesses);
 router.get("/get-all-businesses", getAllBusinesses);
 router.get("/get-business-feat-image/:businessId", getBusinessFeatImage);

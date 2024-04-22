@@ -31,9 +31,11 @@ const isUser = (user) => {
       zipCode: joi.number().allow(null).required(),
       country: joi.string().allow(null).required(),
       photoURL: joi.string().uri().allow(null).required(),
-      role: joi.string().valid("administrator", "user")
+      role: joi.string().valid("administrator", "user", "business-owner"),
+      appointments: joi.object().required(),
    });
 
+   console.log(schema.validate(user).error)
    return !schema.validate(user).error;
 };
 
@@ -77,6 +79,7 @@ const addNewUser = async (request, response) => {
          country: newUser.country,
          photoURL: newUser.photoURL,
          role: newUser.role,
+         appointments: newUser.appointments
       });
 
       //await userCredential.user.sendEmailVerification();
@@ -135,6 +138,7 @@ const updateUser = async (request, response) => {
          country: userUpdate.country,
          photoURL: userUpdate.photoURL,
          role: userUpdate.role,
+         appointments: userUpdate.appointments
       });
 
       response.sendStatus(200);

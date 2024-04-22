@@ -5,6 +5,7 @@ const path = require('path');
 const joi = require('joi');
 const {
    isFilePath,
+   isUserId,
    isCollectionId
 } = require("../common-utils/validation-utils")
 const {
@@ -45,8 +46,10 @@ const isBusiness = (business) => {
       timeTable: joi.array().items(daySchema).unique((a, b) => a.day === b.day).required(),
       appointments: joi.object().required(),
       featuredImageURL: joi.string().uri().allow(null).required(),
+      ownerId: joi.string().alphanum().length(28).required()
    });
 
+   console.log(schema.validate(business).error)
    return !schema.validate(business).error;
 };
 
@@ -285,6 +288,65 @@ const deleteBusinessFeatImage = async (request, response) => {
 };
 
 /**
+ * Retrieves business data by its ID from the Firestore database.
+ * @param {object} request - The request object containing parameters.
+ * @param {object} response - The response object to send back to the client.
+ */
+const getBusinessById = async (request, response) => {
+   try {
+      const businessId = request.params.businessId;
+
+      if (!isCollectionId(businessId)) {
+         throw Error("The request parameter provided is not valid or acceptable.");
+      }
+
+      const businessCollection = firestore.collection('business');
+
+      const businessDoc = await businessCollection.doc(businessId).get();
+
+      if (!businessDoc.exists) {
+         throw Error(`Business with ID ${businessId} not found.`);
+      }
+
+      const businessData = businessDoc.data();
+
+      response.status(200).json(businessData);
+   } catch (error) {
+      response.status(500).json({ error: error.message });
+   }
+};
+
+/**
+ * Retrieves businesses from the Firestore database based on the specified owner ID.
+ * @param {object} request - The request object containing parameters.
+ * @param {object} response - The response object to send back to the client.
+ */
+const getBusinessByOwnerId = async (request, response) => {
+   try {
+      const ownerId = request.params.ownerId;
+
+      if (!isUserId(ownerId)) {
+         throw Error("The request parameter provided is not valid or acceptable.");
+      }
+
+      const businessCollection = firestore.collection('business');
+      const querySnapshot = await businessCollection.where('ownerId', '==', ownerId).get();
+      const businesses = [];
+
+      querySnapshot.forEach((doc) => {
+         businesses.push({
+            businessId: doc.id,
+            business: doc.data()
+         });
+      });
+
+      response.status(200).json(businesses);
+   } catch (error) {
+      response.status(500).json({ error: error.message });
+   }
+};
+
+/**
  * Uploads a featured image to the specified business folder in Firebase Storage.
  * @param {Object} request - The HTTP request object.
  * @param {Object} response - The HTTP response object.
@@ -322,6 +384,8 @@ module.exports = {
    updateBusiness,
    deleteBusinessAndFiles,
    getFeatBusinesses,
+   getBusinessById,
+   getBusinessByOwnerId,
    getMatchingBusinesses,
    getAllBusinesses,
    uploadBusinessFeatImage,
